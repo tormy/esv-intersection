@@ -97,5 +97,4 @@ export abstract class PixiLayer extends Layer {
       this.container.setAttribute('style', `position:absolute;z-index:${order};opacity:${this.opacity}`);
     }
   }
-
 }

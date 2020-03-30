@@ -167,20 +167,14 @@ export const intersection = () => {
   // const calloutLayer = new CalloutCanvasLayer('callout', { order: 4 });
   const image1Layer = new ImageLayer('bg1Img', { order: 1, layerOpacity: 0.5 });
   const image2Layer = new ImageLayer('bg2Img', { order: 2, layerOpacity: 0.5 });
-  const geomodelLayer = new GeomodelLayerV2('geomodel', { order: 2, layerOpacity: 0.8});
+  const geomodelLayer = new GeomodelLayerV2('geomodel', { order: 2, layerOpacity: 0.8 });
   const wellboreLayer = new WellborepathLayer('wellborepath', { order: 3, strokeWidth: '5px', stroke: 'red' });
   const holeSizeLayer = new HoleSizeLayer('holesize', { order: 4, data: holeSizeData });
   const casingLayer = new CasingLayer('casing', { order: 5, data: casingData });
   const geomodelLabelsLayer = new GeomodelLabelsLayer('geomodellabels', { order: 3, data: geolayerdata });
   const seismicLayer = new SeismicCanvasLayer('seismic', { order: 1 });
 
-  const layers = [
-    gridLayer,
-    geomodelLayer,
-    wellboreLayer,
-    geomodelLabelsLayer,
-    seismicLayer
-  ];
+  const layers = [gridLayer, geomodelLayer, wellboreLayer, geomodelLabelsLayer, seismicLayer];
 
   const opts = {
     scaleOptions,
@@ -241,7 +235,6 @@ export const intersection = () => {
     container.setAttribute('height', `${h}`);
     container.setAttribute('width', `${w}`);
     controller.adjustToSize(w, h);
-
   });
 
   btnContainer.appendChild(btnGrid);
@@ -272,7 +265,7 @@ const generateProjectedWellborePath = (projection: number[][]) => {
   });
 
   return projection;
-}
+};
 
 /**
  * storybook helper button for toggling a layer on and off
@@ -304,4 +297,3 @@ function createButtonWithCb(label: string, cb: any) {
   btn.onclick = cb;
   return btn;
 }
-

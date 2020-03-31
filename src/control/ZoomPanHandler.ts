@@ -2,7 +2,7 @@ import { event, select, Selection } from 'd3-selection';
 import { scaleLinear, ScaleLinear } from 'd3-scale';
 import { zoom, zoomIdentity, ZoomBehavior, ZoomTransform } from 'd3-zoom';
 
-import { ZoomAndPanOptions, OnRescaleEvent, OnUpdateEvent } from '../interfaces';
+import { ZoomAndPanOptions, OnRescaleEvent } from '../interfaces';
 
 type RescaleFunction = (event: OnRescaleEvent) => void;
 /**
@@ -176,7 +176,7 @@ export class ZoomPanHandler {
    * Update translate extent (pan limits)
    */
   updateTranslateExtent(): void {
-    const { width, xSpan, ySpan, zFactor, enableTranslateExtent, translateBoundsX, translateBoundsY } = this;
+    const { width, xSpan, zFactor, enableTranslateExtent, translateBoundsX, translateBoundsY } = this;
 
     let x1: number = -Infinity;
     let y1: number = -Infinity;
@@ -185,7 +185,7 @@ export class ZoomPanHandler {
 
     if (enableTranslateExtent) {
       const ppu: number = width / xSpan;
-      const h: number = ySpan * ppu * zFactor;
+      // const h: number = ySpan * ppu * zFactor;
 
       x1 = translateBoundsX[0] * ppu;
       x2 = translateBoundsX[1] * ppu;
@@ -231,7 +231,8 @@ export class ZoomPanHandler {
    * Initialized handler
    */
   init(): void {
-    this.zoom = zoom().scaleExtent([0.1, this.options.maxZoomLevel]).on('zoom', this.onZoom);
+    const minZoomExtent = 0.1;
+    this.zoom = zoom().scaleExtent([minZoomExtent, this.options.maxZoomLevel]).on('zoom', this.onZoom);
 
     this.container.call(this.zoom);
   }
@@ -253,7 +254,7 @@ export class ZoomPanHandler {
    * Update scale
    */
   applyTransform(transform: ZoomTransform): void {
-    const { width, scaleX, scaleY, xSpan, ySpan, xBounds, yBounds, zFactor } = this;
+    const { width, scaleX, scaleY, xSpan, xBounds, yBounds, zFactor } = this;
 
     const { viewportRatio: ratio, isXInverted, isYInverted } = this;
 
@@ -284,7 +285,7 @@ export class ZoomPanHandler {
    * @returns  a merge of filter and payload
    */
   setViewport(cx: number = null, cy: number = null, displ: number = null, duration: number = null): void {
-    const { zoom, container, calculateTransform, viewportRatio: ratio, scaleX, scaleY, isXInverted } = this;
+    const { zoom, container, calculateTransform, scaleX, scaleY, isXInverted } = this;
 
     if (cx === null || displ === null) {
       const xd: number[] = scaleX.domain();
@@ -396,7 +397,7 @@ export class ZoomPanHandler {
   /**
    * Recalcualate the transform
    */
-  recalculateZoomTransform() {
+  recalculateZoomTransform(): void {
     const { scaleX, scaleY, container, calculateTransform, updateTranslateExtent } = this;
 
     const [dx0, dx1] = scaleX.domain();

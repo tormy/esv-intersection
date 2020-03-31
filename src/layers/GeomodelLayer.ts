@@ -58,13 +58,14 @@ export class GeomodelLayer extends PixiLayer {
         polygon.push(data[i][0], data[i][1]);
       }
 
+      const defaultBottomCoord = 10000;
       const endIsReached = i === data.length - 1;
       if (!topIsValid || endIsReached) {
         if (polygon) {
           // Generate bottom of polygon
           for (let j: number = !topIsValid ? i - 1 : i; j >= 0; j--) {
             if (!data[j][1]) break;
-            polygon.push(data[j][0], data[j][2] || 10000);
+            polygon.push(data[j][0], data[j][2] || defaultBottomCoord);
           }
           polygons.push(polygon);
           polygon = null;

@@ -28,9 +28,11 @@ export abstract class CanvasLayer extends Layer {
 
   onMount(event: OnMountEvent): void {
     super.onMount(event);
+    const defaultWidth = 200;
+    const defaultHeight = 300;
     const { elm } = event;
-    const width = event.width || parseInt(elm.getAttribute('width'), 10) || 200;
-    const height = event.height || parseInt(elm.getAttribute('height'), 10) || 300;
+    const width = event.width || parseInt(elm.getAttribute('width'), 10) || defaultWidth;
+    const height = event.height || parseInt(elm.getAttribute('height'), 10) || defaultHeight;
     this.elm = elm;
     let canvas;
     if (!this.canvas) {

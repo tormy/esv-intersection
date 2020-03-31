@@ -2,13 +2,16 @@ import Vector2 from '@equinor/videx-vector2';
 
 import { CanvasLayer } from './CanvasLayer';
 import { GeomodelLayerLabelsOptions, OnUpdateEvent, OnRescaleEvent, OnMountEvent } from '../interfaces';
-import { SurfaceData, SurfaceArea, SurfaceLine, findSampleAtPos } from '../datautils';
+import { SurfaceArea, SurfaceLine, findSampleAtPos } from '../datautils';
 
 export class GeomodelLabelsLayer extends CanvasLayer {
   options: GeomodelLayerLabelsOptions;
   rescaleEvent: OnRescaleEvent;
+  // eslint-disable-next-line no-magic-numbers
   defaultMargins: number = 18;
+  // eslint-disable-next-line no-magic-numbers
   defaultMinFontSize: number = 8;
+  // eslint-disable-next-line no-magic-numbers
   defaultMaxFontSize: number = 13;
   defaultTextColor: string = 'black';
   defaultFont: string = 'Arial';
@@ -80,10 +83,11 @@ export class GeomodelLabelsLayer extends CanvasLayer {
     const margins = this.options.margins || this.defaultMargins;
     const minFontSize = this.options.minFontSize || this.defaultMinFontSize;
     const maxFontSize = this.options.maxFontSize || this.defaultMaxFontSize;
+    const maxMaxFontSize = 70;
 
     let fontSize = maxFontSize / yRatio;
-    if (fontSize > 70) {
-      fontSize = 70;
+    if (fontSize > maxMaxFontSize) {
+      fontSize = maxMaxFontSize;
       if (fontSize * yRatio < minFontSize) {
         fontSize = minFontSize / yRatio;
       }
@@ -123,7 +127,8 @@ export class GeomodelLabelsLayer extends CanvasLayer {
     // Calculate where to sample points
     const dirSteps = 7;
     const posSteps = 5;
-    const posStep = 0.3 * (labelLength / posSteps) * (leftSide ? 1 : -1);
+    const posStepFactor = 0.3;
+    const posStep = posStepFactor * (labelLength / posSteps) * (leftSide ? 1 : -1);
     const dirStep = (labelLength / dirSteps) * (leftSide ? 1 : -1);
 
     // Sample points from top and calculate position and direction vector
@@ -139,7 +144,8 @@ export class GeomodelLabelsLayer extends CanvasLayer {
     let bottomPos: Vector2 = this.calcPos(bottomData, startPos, posSteps, posStep, null, bottomEdge);
     let bottomDir: Vector2 = this.calcDir(bottomData, startPos, dirSteps, dirStep, leftSide ? Vector2.right : Vector2.left, null, bottomEdge);
     if (!bottomPos) {
-      bottomPos = Vector2.add(topPos, new Vector2(0, fontSize * 1.5));
+      const fontSizeFactor = 1.5;
+      bottomPos = Vector2.add(topPos, new Vector2(0, fontSize * fontSizeFactor));
     }
     if (!bottomDir) {
       bottomDir = topDir;
@@ -175,7 +181,6 @@ export class GeomodelLabelsLayer extends CanvasLayer {
   };
 
   drawLineLabel = (s: SurfaceLine): void => {
-    const { ctx } = this;
     const { xScale, xRatio, yRatio } = this.rescaleEvent;
     const maxX = s.data[0][0];
     const minX = s.data[s.data.length - 1][0];
@@ -185,9 +190,9 @@ export class GeomodelLabelsLayer extends CanvasLayer {
 
     const fontSize = maxFontSize / yRatio;
 
-    ctx.save();
-    ctx.font = `${fontSize}px Arial`;
-    const labelMetrics = ctx.measureText(s.label);
+    this.ctx.save();
+    this.ctx.font = `${fontSize}px Arial`;
+    const labelMetrics = this.ctx.measureText(s.label);
     const labelLength = labelMetrics.width;
 
     // Find edge where to draw
@@ -217,16 +222,17 @@ export class GeomodelLabelsLayer extends CanvasLayer {
     const textX = pos.x;
     const textY = pos.y - s.width - fontSize / 2;
     const textDir = Vector2.angleRight(dir) - (this.leftSide ? Math.PI : 0);
-
+    const hex2 = 16;
+    const padLength = 6;
     // Draw label
-    ctx.textAlign = 'center';
-    ctx.translate(textX, textY);
-    ctx.rotate(textDir);
-    ctx.fillStyle = `#${s.color.toString(16).padStart(6, '0')}`;
-    ctx.textBaseline = 'middle';
-    ctx.fillText(s.id, 0, 0);
+    this.ctx.textAlign = 'center';
+    this.ctx.translate(textX, textY);
+    this.ctx.rotate(textDir);
+    this.ctx.fillStyle = `#${s.color.toString(hex2).padStart(padLength, '0')}`;
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(s.id, 0, 0);
 
-    ctx.restore();
+    this.ctx.restore();
   };
 
   calcPos(data: number[][], offset: number, count: number, step: number, topLimit: number = null, bottomLimit: number = null): Vector2 {

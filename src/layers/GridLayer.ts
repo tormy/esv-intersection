@@ -1,3 +1,4 @@
+import { select } from 'd3';
 import { CanvasLayer } from './CanvasLayer';
 import { GridLayerOptions, OnUpdateEvent, OnRescaleEvent } from '../interfaces';
 
@@ -22,6 +23,7 @@ export class GridLayer extends CanvasLayer {
     this.options = {
       ...(options || defaultOptions),
     };
+    select(this.canvas).style('pointer-events', 'none');
     this.render = this.render.bind(this);
   }
 

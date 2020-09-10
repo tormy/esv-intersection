@@ -8,6 +8,7 @@ import {
   OnRescaleEvent,
   IntersectionReferenceSystem,
   Controller,
+  WellborepathLayer,
 } from '../../../src';
 import { generateSurfaceData, SurfaceData, SurfaceLine, SurfaceArea, convertColor } from '../../../src/datautils';
 import { getSurfaces, getStratColumns, getPositionLog, getWellborePath } from '../data';
@@ -15,6 +16,7 @@ import { getSurfaces, getStratColumns, getPositionLog, getWellborePath } from '.
 import { createRootContainer, createLayerContainer, createFPSLabel, createHelpText } from '../utils';
 
 import pozoData from '../exampledata/POZO/intersection.json';
+import pozoPosLog from '../exampledata/POZO/positionLog D-32.json';
 
 const width = 700;
 const height = 600;
@@ -242,48 +244,73 @@ export const GeoModelCanvasUsingHighLevelInterface = () => {
 };
 
 export const GeoModelWithLabelsUsingPozoData = () => {
+  const xBounds: [number, number] = [0, 1000];
+  const yBounds: [number, number] = [0, 1000];
+
+  const scaleOptions = { xBounds, yBounds };
+  const axisOptions = {
+    xLabel: 'Displacement',
+    yLabel: 'TVD MSL',
+    unitOfMeasure: 'm',
+  };
+
   const root = createRootContainer(width);
   const container = createLayerContainer(width, height);
   const fpsLabel = createFPSLabel();
+
+  const referenceSystem = new IntersectionReferenceSystem(pozoPosLog.sort((a, b) => b.md - a.md).map((d) => [d.easting, d.northing, d.tvdMsl]));
+  referenceSystem.offset = pozoPosLog[0].tvdMsl;
 
   const options: GeomodelLayerOptions = { order: 1 };
   const geoModelLayer = new GeomodelLayerV2('geomodels', options);
   geoModelLayer.onMount({ elm: container, height, width });
 
-  const options2: LayerOptions = { order: 1 };
+  const options2: LayerOptions = { order: 2 };
   const geoModelLabelsLayer = new GeomodelLabelsLayer('labels', options2);
   geoModelLabelsLayer.onMount({ elm: container });
 
-  const lines: SurfaceLine[] = pozoData.lines.map(p => ({
+  const wellboreLayer = new WellborepathLayer('wellborepath', { order: 3, strokeWidth: '2px', stroke: 'red' });
+
+  const lines: SurfaceLine[] = pozoData.lines.map((p) => ({
     id: p.label,
     label: p.label,
     width: 2,
     color: convertColor(p.color),
-    data: p.data.map(d => ([d.xl, d.yt])),
+    data: p.data.map((d) => [d.xl, d.yt]),
   }));
-  const areas: SurfaceArea[] = pozoData.areas.filter(p => p.exclude == false).map(p => ({
-    id: p.label,
-    label: p.label,
-    color: convertColor(p.color),
-    data: p.data.map(d => ([d.xl, d.yt, d.yb])),
-  }));
+  const areas: SurfaceArea[] = pozoData.areas
+    .filter((p) => p.exclude == false)
+    .map((p) => ({
+      id: p.label,
+      label: p.label,
+      color: convertColor(p.color),
+      data: p.data.map((d) => [d.xl, d.yt, d.yb]),
+    }));
 
   const geolayerdata: SurfaceData = {
     lines,
-    areas
+    areas,
   };
+
+  const opts = {
+    scaleOptions,
+    axisOptions,
+    container,
+    referenceSystem,
+    layers: [geoModelLayer, geoModelLabelsLayer, wellboreLayer],
+  };
+
+  const controller = new Controller(opts);
+  controller.setReferenceSystem(referenceSystem);
 
   geoModelLayer.setData(geolayerdata);
   geoModelLabelsLayer.setData(geolayerdata);
 
-  const controller = new Controller({ container, layers: [geoModelLayer, geoModelLabelsLayer] });
-
-  controller.setBounds([0, 1000], [0, 1000]);
   controller.adjustToSize(width, height);
-  controller.zoomPanHandler.zFactor = 1;
+  controller.zoomPanHandler.zFactor = 3;
   controller.zoomPanHandler.setTranslateBounds([-5000, 6000], [-5000, 6000]);
   controller.zoomPanHandler.enableTranslateExtent = false;
-  controller.setViewport(1000, 1000, 5000);
+  controller.setViewport(2250, 1400, 5000);
 
   root.appendChild(createHelpText('High level interface for creating and displaying geo model in dataformat used by POZO.'));
   root.appendChild(container);
